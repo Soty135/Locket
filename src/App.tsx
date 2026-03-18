@@ -1,3 +1,4 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ValuationSection from './components/ValuationSection';
@@ -7,8 +8,9 @@ import DeviceGrid from './components/DeviceGrid';
 import FairPlayPolicy from './components/FairPlayPolicy';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
 import Footer from './components/Footer';
+import AdminPage from './pages/AdminPage';
 
-function App() {
+function LandingPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -23,6 +25,17 @@ function App() {
       <Footer />
       <FloatingWhatsApp />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/admin" element={<AdminPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

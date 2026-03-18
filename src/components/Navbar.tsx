@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { MessageCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { MessageCircle, LayoutDashboard } from 'lucide-react';
 
 const WhatsAppButton = () => {
   const phoneNumber = '2348169738828';
@@ -36,11 +37,24 @@ export default function Navbar() {
             <span className="text-xl font-semibold text-white">Locket</span>
           </div>
           
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-4">
+            <Link
+              to="/admin"
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              Admin
+            </Link>
             <WhatsAppButton />
           </div>
           
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-2">
+            <Link
+              to="/admin"
+              className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+            >
+              <LayoutDashboard className="w-5 h-5" />
+            </Link>
             <a
               href="https://wa.me/2348169738828?text=Hi!%20I%20want%20to%20get%20an%20estimate%20for%20my%20device."
               target="_blank"
