@@ -148,15 +148,15 @@ export default function LoanSearch({ onViewDetails, refreshTrigger }: LoanSearch
                   </div>
 
                   <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Principal:</span>
-                      <span className="font-medium">
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-gray-500 flex-shrink-0">Principal:</span>
+                      <span className="font-medium text-right break-all">
                         {formatCurrency(loan.data.loan.principalAmount)}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Maturity:</span>
-                      <span className="font-medium">
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-gray-500 flex-shrink-0">Maturity:</span>
+                      <span className="font-medium text-right">
                         {formatDate(loan.data.loan.maturityDate)}
                       </span>
                     </div>
@@ -166,7 +166,7 @@ export default function LoanSearch({ onViewDetails, refreshTrigger }: LoanSearch
                     <select
                       value={status}
                       onChange={(e) => handleStatusChange(loan.id, e.target.value as LoanStatus)}
-                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="flex-1 min-w-0 px-2 py-2 text-xs md:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="active">Active</option>
                       <option value="overdue">Overdue</option>
@@ -174,7 +174,7 @@ export default function LoanSearch({ onViewDetails, refreshTrigger }: LoanSearch
                     </select>
                     <button
                       onClick={() => onViewDetails(loan)}
-                      className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                      className="px-3 md:px-4 py-2 bg-blue-600 text-white text-xs md:text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
                     >
                       View
                     </button>

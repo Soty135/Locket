@@ -142,22 +142,30 @@ export default function LoanDetailsModal({ loan, isOpen, onClose }: LoanDetailsM
               <DollarSign className="w-5 h-5 text-gray-400" />
               Loan Details
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-blue-50 rounded-lg p-4">
-                <p className="text-sm text-blue-600">Principal Amount</p>
-                <p className="text-xl font-bold text-blue-900">{formatCurrency(loan.data.loan.principalAmount)}</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+              <div className="bg-blue-50 rounded-lg p-3 md:p-4 overflow-hidden">
+                <p className="text-xs md:text-sm text-blue-600">Principal Amount</p>
+                <p className="text-base md:text-lg font-bold text-blue-900 break-all leading-tight">
+                  {formatCurrency(loan.data.loan.principalAmount)}
+                </p>
               </div>
-              <div className="bg-purple-50 rounded-lg p-4">
-                <p className="text-sm text-purple-600">Interest Rate</p>
-                <p className="text-xl font-bold text-purple-900">{loan.data.loan.interestRate}%</p>
+              <div className="bg-purple-50 rounded-lg p-3 md:p-4 overflow-hidden">
+                <p className="text-xs md:text-sm text-purple-600">Interest Rate</p>
+                <p className="text-base md:text-lg font-bold text-purple-900 leading-tight">
+                  {loan.data.loan.interestRate}%
+                </p>
               </div>
-              <div className="bg-green-50 rounded-lg p-4">
-                <p className="text-sm text-green-600">Total Payments</p>
-                <p className="text-xl font-bold text-green-900">{formatCurrency(calculateTotalPayments())}</p>
+              <div className="bg-green-50 rounded-lg p-3 md:p-4 overflow-hidden">
+                <p className="text-xs md:text-sm text-green-600">Total Payments</p>
+                <p className="text-base md:text-lg font-bold text-green-900 break-all leading-tight">
+                  {formatCurrency(calculateTotalPayments())}
+                </p>
               </div>
-              <div className="bg-orange-50 rounded-lg p-4">
-                <p className="text-sm text-orange-600">Total Interest</p>
-                <p className="text-xl font-bold text-orange-900">{formatCurrency(calculateTotalInterest())}</p>
+              <div className="bg-orange-50 rounded-lg p-3 md:p-4 overflow-hidden">
+                <p className="text-xs md:text-sm text-orange-600">Total Interest</p>
+                <p className="text-base md:text-lg font-bold text-orange-900 break-all leading-tight">
+                  {formatCurrency(calculateTotalInterest())}
+                </p>
               </div>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
@@ -188,29 +196,29 @@ export default function LoanDetailsModal({ loan, isOpen, onClose }: LoanDetailsM
                 No payments recorded yet
               </div>
             ) : (
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
-                <table className="w-full">
+              <div className="border border-gray-200 rounded-lg overflow-x-auto">
+                <table className="w-full min-w-[400px]">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Date</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Type</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Amount</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Balance</th>
+                      <th className="px-2 md:px-4 py-3 text-left text-xs md:text-sm font-medium text-gray-500">Date</th>
+                      <th className="px-2 md:px-4 py-3 text-left text-xs md:text-sm font-medium text-gray-500">Type</th>
+                      <th className="px-2 md:px-4 py-3 text-right text-xs md:text-sm font-medium text-gray-500">Amount</th>
+                      <th className="px-2 md:px-4 py-3 text-right text-xs md:text-sm font-medium text-gray-500">Balance</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {loan.data.payments.map((payment, index) => (
                       <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm text-gray-900">
+                        <td className="px-2 md:px-4 py-3 text-xs md:text-sm text-gray-900 whitespace-nowrap">
                           {formatDate(payment.date)}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
+                        <td className="px-2 md:px-4 py-3 text-xs md:text-sm text-gray-900">
                           {paymentTypeLabels[payment.type] || payment.type}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
+                        <td className="px-2 md:px-4 py-3 text-xs md:text-sm text-gray-900 text-right font-medium whitespace-nowrap">
                           {formatCurrency(payment.amount)}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900 text-right">
+                        <td className="px-2 md:px-4 py-3 text-xs md:text-sm text-gray-900 text-right whitespace-nowrap">
                           {formatCurrency(payment.balance)}
                         </td>
                       </tr>
