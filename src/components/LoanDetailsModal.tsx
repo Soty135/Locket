@@ -1,10 +1,11 @@
-import { X, Phone, Laptop, Gamepad2, User, Calendar, DollarSign, CreditCard } from 'lucide-react';
+import { X, Phone, Laptop, Gamepad2, User, Calendar, DollarSign, CreditCard, RotateCcw } from 'lucide-react';
 import type { Loan } from '../types/loan';
 
 interface LoanDetailsModalProps {
   loan: { id: string; data: Loan } | null;
   isOpen: boolean;
   onClose: () => void;
+  onRenew: () => void;
 }
 
 const hardwareIcons = {
@@ -26,7 +27,7 @@ const paymentTypeLabels: Record<string, string> = {
   release: 'Final Release',
 };
 
-export default function LoanDetailsModal({ loan, isOpen, onClose }: LoanDetailsModalProps) {
+export default function LoanDetailsModal({ loan, isOpen, onClose, onRenew }: LoanDetailsModalProps) {
   if (!isOpen || !loan) return null;
 
   const HardwareIcon = hardwareIcons[loan.data.hardware.type] || Phone;
@@ -71,6 +72,15 @@ export default function LoanDetailsModal({ loan, isOpen, onClose }: LoanDetailsM
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[loan.data.loan.status]}`}>
               {loan.data.loan.status.charAt(0).toUpperCase() + loan.data.loan.status.slice(1)}
             </span>
+            {loan.data.loan.status !== 'paid' && (
+              <button
+                onClick={onRenew}
+                className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Renew
+              </button>
+            )}
           </div>
           <button
             onClick={onClose}

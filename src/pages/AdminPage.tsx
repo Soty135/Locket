@@ -8,6 +8,7 @@ import LoanSearch from '../components/LoanSearch';
 import NewLoanForm from '../components/NewLoanForm';
 import LoanDetailsModal from '../components/LoanDetailsModal';
 import PawnReceipt from '../components/PawnReceipt';
+import RenewalForm from '../components/RenewalForm';
 import LoginForm from '../components/LoginForm';
 import type { Loan } from '../types/loan';
 
@@ -17,6 +18,7 @@ export default function AdminPage() {
   const [isNewLoanOpen, setIsNewLoanOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<{ id: string; data: Loan } | null>(null);
   const [receiptLoan, setReceiptLoan] = useState<{ id: string; data: Loan } | null>(null);
+  const [renewalLoan, setRenewalLoan] = useState<{ id: string; data: Loan } | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const navigate = useNavigate();
 
@@ -58,6 +60,29 @@ export default function AdminPage() {
 
   const handleCloseReceipt = () => {
     setReceiptLoan(null);
+  };
+
+  const handleRenewClick = () => {
+    if (selectedLoan) {
+      setRenewalLoan(selectedLoan);
+    }
+  };
+
+  const handleCloseRenewalModal = () => {
+    setRenewalLoan(null);
+  };
+
+  const handleRenewalSuccess = async (_result: { previousPrincipal: number; unpaidInterest: number; newPrincipal: number; newMaturityDate: Date }) => {
+    setRenewalLoan(null);
+    setRefreshTrigger((prev) => prev + 1);
+    
+    if (selectedLoan) {
+      const loanData = await getLoanById(selectedLoan.id);
+      if (loanData) {
+        const updatedLoan = { id: selectedLoan.id, data: loanData };
+        setSelectedLoan(updatedLoan);
+      }
+    }
   };
 
   if (loading) {
@@ -127,7 +152,18 @@ export default function AdminPage() {
         loan={selectedLoan}
         isOpen={!!selectedLoan}
         onClose={handleCloseDetailsModal}
+        onRenew={handleRenewClick}
       />
+
+      {renewalLoan && (
+        <RenewalForm
+          txnId={renewalLoan.id}
+          loan={renewalLoan.data}
+          isOpen={!!renewalLoan}
+          onClose={handleCloseRenewalModal}
+          onSuccess={handleRenewalSuccess}
+        />
+      )}
 
       {receiptLoan && (
         <PawnReceipt

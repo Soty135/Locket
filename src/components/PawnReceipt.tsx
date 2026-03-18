@@ -1,4 +1,4 @@
-import { X, Printer, Copy, Check } from 'lucide-react';
+import { X, Printer, Copy, Check, CreditCard } from 'lucide-react';
 import { useState } from 'react';
 import type { Loan } from '../types/loan';
 
@@ -37,11 +37,40 @@ export default function PawnReceipt({ txnId, loan, isOpen, onClose }: PawnReceip
     return principal * (rate / 100);
   };
 
+  const calculateTotalPayments = () => {
+    return loan.payments.reduce((sum: number, p: { amount: number }) => sum + p.amount, 0);
+  };
+
+  const calculateRemainingBalance = () => {
+    if (loan.payments.length === 0) {
+      return loan.loan.principalAmount;
+    }
+    return loan.payments[loan.payments.length - 1].balance;
+  };
+
+  const getPaymentTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      interest: 'Interest',
+      principal: 'Principal',
+      renewal: 'Renewal',
+      release: 'Release',
+    };
+    return labels[type] || type;
+  };
+
   const handlePrint = () => {
     window.print();
   };
 
+  const hasPayments = loan.payments.length > 0;
+  const totalPayments = calculateTotalPayments();
+  const remainingBalance = calculateRemainingBalance();
+
   const handleCopy = () => {
+    const paymentsInfo = hasPayments
+      ? `\nPAYMENT SUMMARY\n-------------\nTotal Payments: ${formatCurrency(totalPayments)}\nRemaining Balance: ${formatCurrency(remainingBalance)}\n\nPAYMENT HISTORY\n--------------\n${loan.payments.map((p, i) => `${i + 1}. ${formatDate(p.date)} - ${getPaymentTypeLabel(p.type)}: ${formatCurrency(p.amount)} (Balance: ${formatCurrency(p.balance)})`).join('\n')}`
+      : '';
+
     const receiptText = `
 PAWN SHOP RECEIPT / PAWN TICKET
 ================================
@@ -70,7 +99,7 @@ Principal Amount: ${formatCurrency(loan.loan.principalAmount)}
 Interest Rate: ${loan.loan.interestRate}% per month
 Monthly Interest: ${formatCurrency(calculateInterest())}
 Maturity Date: ${formatDate(loan.loan.maturityDate)}
-Status: ${loan.loan.status.toUpperCase()}
+Status: ${loan.loan.status.toUpperCase()}${paymentsInfo}
 
 ================================
 Keep this receipt for item pickup.
@@ -237,6 +266,68 @@ Present this receipt when repaying loan.
                   </div>
                 </div>
               </div>
+
+              {hasPayments && (
+                <>
+                  <div className="border border-gray-200 rounded-lg p-4 mb-6">
+                    <h3 className="font-semibold text-gray-900 mb-3 border-b pb-2 flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-gray-400" />
+                      Payment Summary
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Total Payments:</span>
+                        <span className="font-bold text-green-600">{formatCurrency(totalPayments)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Remaining Balance:</span>
+                        <span className="font-bold text-blue-600">{formatCurrency(remainingBalance)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border border-gray-200 rounded-lg overflow-hidden mb-6">
+                    <h3 className="font-semibold text-gray-900 p-4 border-b bg-gray-50">Payment History</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Balance</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {loan.payments.map((payment, index) => (
+                            <tr key={index} className="hover:bg-gray-50">
+                              <td className="px-4 py-3 text-gray-500">{index + 1}</td>
+                              <td className="px-4 py-3 text-gray-900 whitespace-nowrap">{formatDate(payment.date)}</td>
+                              <td className="px-4 py-3 text-gray-900">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  payment.type === 'renewal' ? 'bg-blue-100 text-blue-800' :
+                                  payment.type === 'release' ? 'bg-gray-100 text-gray-800' :
+                                  payment.type === 'principal' ? 'bg-purple-100 text-purple-800' :
+                                  'bg-green-100 text-green-800'
+                                }`}>
+                                  {getPaymentTypeLabel(payment.type)}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right font-medium text-gray-900 whitespace-nowrap">
+                                {formatCurrency(payment.amount)}
+                              </td>
+                              <td className="px-4 py-3 text-right text-gray-900 whitespace-nowrap">
+                                {formatCurrency(payment.balance)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className="text-center text-sm text-gray-500">
                 <p>Date Issued: {formatDate(loan.loan.createdAt)}</p>

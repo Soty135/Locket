@@ -221,3 +221,77 @@ export async function refreshOverdueLoans(): Promise<number> {
   
   return updatedCount;
 }
+
+export interface RenewalResult {
+  txnId: string;
+  previousPrincipal: number;
+  unpaidInterest: number;
+  newPrincipal: number;
+  newMaturityDate: Date;
+}
+
+export async function renewLoan(
+  txnId: string,
+  additionalMonths: number = 1
+): Promise<RenewalResult> {
+  const docRef = doc(db, 'loans', txnId);
+  const docSnap = await getDoc(docRef);
+  
+  if (!docSnap.exists()) {
+    throw new Error('Loan not found');
+  }
+  
+  const loan = docSnap.data() as Loan;
+  
+  if (loan.loan.status === 'paid') {
+    throw new Error('Cannot renew a paid loan');
+  }
+  
+  const now = Timestamp.now();
+  const principal = loan.loan.principalAmount;
+  const interestRate = loan.loan.interestRate;
+  
+  const monthsSinceMaturity = calculateMonthsDifference(
+    loan.loan.maturityDate.toDate(),
+    now.toDate()
+  );
+  
+  const unpaidInterest = principal * (interestRate / 100) * Math.max(1, monthsSinceMaturity);
+  
+  const newPrincipal = Math.round((principal + unpaidInterest) * 100) / 100;
+  
+  const newMaturityDate = new Date();
+  newMaturityDate.setMonth(newMaturityDate.getMonth() + additionalMonths);
+  const newMaturityTimestamp = Timestamp.fromDate(newMaturityDate);
+  
+  const renewalPayment: Payment = {
+    date: now,
+    amount: 0,
+    type: 'renewal',
+    balance: newPrincipal,
+  };
+  
+  const updatedPayments = [...loan.payments, renewalPayment];
+  
+  await updateDoc(docRef, {
+    'loan.principalAmount': newPrincipal,
+    'loan.maturityDate': newMaturityTimestamp,
+    'loan.status': 'active',
+    'loan.updatedAt': now,
+    payments: updatedPayments,
+  });
+  
+  return {
+    txnId,
+    previousPrincipal: principal,
+    unpaidInterest: Math.round(unpaidInterest * 100) / 100,
+    newPrincipal,
+    newMaturityDate,
+  };
+}
+
+function calculateMonthsDifference(startDate: Date, endDate: Date): number {
+  const months = (endDate.getFullYear() - startDate.getFullYear()) * 12;
+  const monthDiff = endDate.getMonth() - startDate.getMonth();
+  return Math.max(0, months + monthDiff);
+}
