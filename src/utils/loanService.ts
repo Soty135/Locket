@@ -146,6 +146,7 @@ export async function createLoan(formData: LoanFormData): Promise<string> {
       status: 'active',
       createdAt: now,
       updatedAt: now,
+      originalPrincipal: formData.principalAmount,
     },
     payments: [],
   };
@@ -226,13 +227,15 @@ export interface RenewalResult {
   txnId: string;
   previousPrincipal: number;
   unpaidInterest: number;
+  renewalFee: number;
   newPrincipal: number;
   newMaturityDate: Date;
 }
 
 export async function renewLoan(
   txnId: string,
-  additionalMonths: number = 1
+  newMaturityDate: Date,
+  renewalFee: number = 500
 ): Promise<RenewalResult> {
   const docRef = doc(db, 'loans', txnId);
   const docSnap = await getDoc(docRef);
@@ -248,6 +251,8 @@ export async function renewLoan(
   }
   
   const now = Timestamp.now();
+  
+  const originalPrincipal = loan.loan.originalPrincipal || loan.loan.principalAmount;
   const principal = loan.loan.principalAmount;
   const interestRate = loan.loan.interestRate;
   
@@ -256,12 +261,10 @@ export async function renewLoan(
     now.toDate()
   );
   
-  const unpaidInterest = principal * (interestRate / 100) * Math.max(1, monthsSinceMaturity);
+  const unpaidInterest = originalPrincipal * (interestRate / 100) * Math.max(1, monthsSinceMaturity);
   
-  const newPrincipal = Math.round((principal + unpaidInterest) * 100) / 100;
+  const newPrincipal = Math.round((principal + unpaidInterest + renewalFee) * 100) / 100;
   
-  const newMaturityDate = new Date();
-  newMaturityDate.setMonth(newMaturityDate.getMonth() + additionalMonths);
   const newMaturityTimestamp = Timestamp.fromDate(newMaturityDate);
   
   const renewalPayment: Payment = {
@@ -278,6 +281,8 @@ export async function renewLoan(
     'loan.maturityDate': newMaturityTimestamp,
     'loan.status': 'active',
     'loan.updatedAt': now,
+    'loan.renewalCount': (loan.loan as any).renewalCount ? (loan.loan as any).renewalCount + 1 : 1,
+    'loan.lastRenewalFee': renewalFee,
     payments: updatedPayments,
   });
   
@@ -285,6 +290,7 @@ export async function renewLoan(
     txnId,
     previousPrincipal: principal,
     unpaidInterest: Math.round(unpaidInterest * 100) / 100,
+    renewalFee,
     newPrincipal,
     newMaturityDate,
   };
@@ -293,5 +299,5 @@ export async function renewLoan(
 function calculateMonthsDifference(startDate: Date, endDate: Date): number {
   const months = (endDate.getFullYear() - startDate.getFullYear()) * 12;
   const monthDiff = endDate.getMonth() - startDate.getMonth();
-  return Math.max(0, months + monthDiff);
+  return Math.max(1, months + monthDiff);
 }

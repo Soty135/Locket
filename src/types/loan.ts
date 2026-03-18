@@ -27,6 +27,9 @@ export interface LoanDetails {
   status: LoanStatus;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  originalPrincipal?: number;
+  renewalCount?: number;
+  lastRenewalFee?: number;
 }
 
 export interface Payment {

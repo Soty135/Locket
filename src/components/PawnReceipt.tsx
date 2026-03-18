@@ -66,9 +66,17 @@ export default function PawnReceipt({ txnId, loan, isOpen, onClose }: PawnReceip
   const totalPayments = calculateTotalPayments();
   const remainingBalance = calculateRemainingBalance();
 
+  const hasRenewals = (loan.loan as any).renewalCount > 0;
+  const originalPrincipal = loan.loan.originalPrincipal || loan.loan.principalAmount;
+  const isRenewed = originalPrincipal !== loan.loan.principalAmount;
+
   const handleCopy = () => {
     const paymentsInfo = hasPayments
       ? `\nPAYMENT SUMMARY\n-------------\nTotal Payments: ${formatCurrency(totalPayments)}\nRemaining Balance: ${formatCurrency(remainingBalance)}\n\nPAYMENT HISTORY\n--------------\n${loan.payments.map((p, i) => `${i + 1}. ${formatDate(p.date)} - ${getPaymentTypeLabel(p.type)}: ${formatCurrency(p.amount)} (Balance: ${formatCurrency(p.balance)})`).join('\n')}`
+      : '';
+
+    const renewalInfo = hasRenewals
+      ? `\nRENEWAL INFO\n------------\nRenewal Count: ${(loan.loan as any).renewalCount}`
       : '';
 
     const receiptText = `
@@ -95,11 +103,11 @@ ${loan.hardware.type === 'phone' ? 'IMEI' : 'Serial Number'}: ${loan.hardware.id
 
 LOAN DETAILS
 -------------
-Principal Amount: ${formatCurrency(loan.loan.principalAmount)}
+${isRenewed ? `Original Principal: ${formatCurrency(originalPrincipal)}\n` : ''}Principal Amount: ${formatCurrency(loan.loan.principalAmount)}
 Interest Rate: ${loan.loan.interestRate}% per month
 Monthly Interest: ${formatCurrency(calculateInterest())}
 Maturity Date: ${formatDate(loan.loan.maturityDate)}
-Status: ${loan.loan.status.toUpperCase()}${paymentsInfo}
+Status: ${loan.loan.status.toUpperCase()}${renewalInfo}${paymentsInfo}
 
 ================================
 Keep this receipt for item pickup.
@@ -145,6 +153,7 @@ Present this receipt when repaying loan.
         <p style={{ margin: '1px 0', fontSize: '9px' }}><b>Interest:</b> {loan.loan.interestRate}%/month</p>
         <p style={{ margin: '1px 0', fontSize: '9px' }}><b>Monthly Int:</b> {formatCurrency(calculateInterest())}</p>
         <p style={{ margin: '1px 0', fontSize: '9px' }}><b>Maturity:</b> {formatDate(loan.loan.maturityDate)}</p>
+        {hasRenewals && <p style={{ margin: '1px 0', fontSize: '9px' }}><b>Renewals:</b> {(loan.loan as any).renewalCount}x</p>}
       </div>
 
       <div style={{ textAlign: 'center', fontSize: '9px', borderTop: '1px solid #999', paddingTop: '5px' }}>
@@ -248,6 +257,12 @@ Present this receipt when repaying loan.
               <div className="border border-gray-200 rounded-lg p-4 mb-6">
                 <h3 className="font-semibold text-gray-900 mb-3 border-b pb-2">Loan Details</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
+                  {isRenewed && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Original Principal:</span>
+                      <span className="font-medium">{formatCurrency(originalPrincipal)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-gray-500">Principal Amount:</span>
                     <span className="font-bold text-lg">{formatCurrency(loan.loan.principalAmount)}</span>
@@ -264,6 +279,12 @@ Present this receipt when repaying loan.
                     <span className="text-gray-500">Maturity Date:</span>
                     <span className="font-medium">{formatDate(loan.loan.maturityDate)}</span>
                   </div>
+                  {hasRenewals && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Renewal Count:</span>
+                      <span className="font-medium">{(loan.loan as any).renewalCount}x</span>
+                    </div>
+                  )}
                 </div>
               </div>
 

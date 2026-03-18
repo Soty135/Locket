@@ -72,7 +72,7 @@ export default function AdminPage() {
     setRenewalLoan(null);
   };
 
-  const handleRenewalSuccess = async (_result: { previousPrincipal: number; unpaidInterest: number; newPrincipal: number; newMaturityDate: Date }) => {
+  const handleRenewalSuccess = async (_result: { previousPrincipal: number; unpaidInterest: number; renewalFee: number; newPrincipal: number; newMaturityDate: Date }) => {
     setRenewalLoan(null);
     setRefreshTrigger((prev) => prev + 1);
     

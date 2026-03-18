@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { X, Loader2, RotateCcw } from 'lucide-react';
 import { renewLoan } from '../utils/loanService';
 import type { Loan } from '../types/loan';
@@ -8,39 +8,48 @@ interface RenewalFormProps {
   loan: Loan;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (result: { previousPrincipal: number; unpaidInterest: number; newPrincipal: number; newMaturityDate: Date }) => void;
+  onSuccess: (result: { previousPrincipal: number; unpaidInterest: number; renewalFee: number; newPrincipal: number; newMaturityDate: Date }) => void;
 }
 
 export default function RenewalForm({ txnId, loan, isOpen, onClose, onSuccess }: RenewalFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [months, setMonths] = useState(1);
+  const [renewalFee, setRenewalFee] = useState(500);
+  const [newMaturityDate, setNewMaturityDate] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 30);
+    return date.toISOString().split('T')[0];
+  });
 
   if (!isOpen) return null;
 
+  const originalPrincipal = loan.loan.originalPrincipal || loan.loan.principalAmount;
   const principal = loan.loan.principalAmount;
   const interestRate = loan.loan.interestRate;
 
-  const calculateUnpaidInterest = () => {
+  const monthsOverdue = useMemo(() => {
     const now = new Date();
     const maturity = loan.loan.maturityDate.toDate();
-    const monthsDiff = Math.max(1, 
-      (now.getFullYear() - maturity.getFullYear()) * 12 + 
-      (now.getMonth() - maturity.getMonth())
-    );
-    return Math.round(principal * (interestRate / 100) * monthsDiff * 100) / 100;
-  };
+    const months = (now.getFullYear() - maturity.getFullYear()) * 12 + (now.getMonth() - maturity.getMonth());
+    return Math.max(1, months);
+  }, [loan.loan.maturityDate]);
 
-  const unpaidInterest = calculateUnpaidInterest();
-  const newPrincipal = Math.round((principal + unpaidInterest) * 100) / 100;
-  
-  const newMaturityDate = new Date();
-  newMaturityDate.setMonth(newMaturityDate.getMonth() + months);
-  const formattedNewMaturity = newMaturityDate.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const unpaidInterest = useMemo(() => {
+    return Math.round(originalPrincipal * (interestRate / 100) * monthsOverdue * 100) / 100;
+  }, [originalPrincipal, interestRate, monthsOverdue]);
+
+  const newPrincipal = useMemo(() => {
+    return Math.round((principal + unpaidInterest + renewalFee) * 100) / 100;
+  }, [principal, unpaidInterest, renewalFee]);
+
+  const formattedNewMaturity = useMemo(() => {
+    if (!newMaturityDate) return '';
+    return new Date(newMaturityDate).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  }, [newMaturityDate]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -55,7 +64,8 @@ export default function RenewalForm({ txnId, loan, isOpen, onClose, onSuccess }:
     setLoading(true);
 
     try {
-      const result = await renewLoan(txnId, months);
+      const maturityDateObj = new Date(newMaturityDate);
+      const result = await renewLoan(txnId, maturityDateObj, renewalFee);
       onSuccess(result);
       onClose();
     } catch (err: any) {
@@ -66,7 +76,10 @@ export default function RenewalForm({ txnId, loan, isOpen, onClose, onSuccess }:
   };
 
   const handleClose = () => {
-    setMonths(1);
+    setRenewalFee(500);
+    const date = new Date();
+    date.setDate(date.getDate() + 30);
+    setNewMaturityDate(date.toISOString().split('T')[0]);
     setError('');
     onClose();
   };
@@ -96,45 +109,108 @@ export default function RenewalForm({ txnId, loan, isOpen, onClose, onSuccess }:
 
           <div className="bg-gray-50 rounded-lg p-4 space-y-3">
             <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Original Principal:</span>
+              <span className="font-medium">{formatCurrency(originalPrincipal)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
               <span className="text-gray-500">Current Principal:</span>
               <span className="font-medium">{formatCurrency(principal)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Unpaid Interest:</span>
-              <span className="font-medium text-red-600">{formatCurrency(unpaidInterest)}</span>
+              <span className="text-gray-500">Interest Rate:</span>
+              <span className="font-medium">{interestRate}%</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Months Overdue:</span>
+              <span className="font-medium">{monthsOverdue}</span>
             </div>
             <div className="border-t border-gray-200 pt-3 flex justify-between">
-              <span className="text-gray-500 font-medium">New Principal:</span>
-              <span className="font-bold text-lg text-blue-600">{formatCurrency(newPrincipal)}</span>
+              <span className="text-gray-500 font-medium">Unpaid Interest:</span>
+              <span className="font-bold text-red-600">{formatCurrency(unpaidInterest)}</span>
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Renewal Period
+              New Maturity Date
             </label>
-            <div className="flex flex-wrap gap-2">
-              {[1, 2, 3, 6].map((m) => (
+            <input
+              type="date"
+              required
+              min={new Date().toISOString().split('T')[0]}
+              value={newMaturityDate}
+              onChange={(e) => setNewMaturityDate(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <div className="mt-2 flex flex-wrap gap-2">
+              {[7, 14, 30, 60, 90].map((days) => (
                 <button
-                  key={m}
+                  key={days}
                   type="button"
-                  onClick={() => setMonths(m)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    months === m
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  onClick={() => {
+                    const date = new Date();
+                    date.setDate(date.getDate() + days);
+                    setNewMaturityDate(date.toISOString().split('T')[0]);
+                  }}
+                  className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                 >
-                  {m} month{m > 1 ? 's' : ''}
+                  +{days} days
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="bg-blue-50 rounded-lg p-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Renewal Fee (₦)
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="100"
+              value={renewalFee}
+              onChange={(e) => setRenewalFee(Math.max(0, parseInt(e.target.value) || 0))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <div className="mt-2 flex flex-wrap gap-2">
+              {[500, 1000, 2000, 5000].map((fee) => (
+                <button
+                  key={fee}
+                  type="button"
+                  onClick={() => setRenewalFee(fee)}
+                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+                    renewalFee === fee
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 hover:bg-gray-200'
+                  }`}
+                >
+                  ₦{fee.toLocaleString()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-blue-50 rounded-lg p-4 space-y-2">
+            <p className="text-sm font-semibold text-blue-900">New Principal Breakdown</p>
             <div className="flex justify-between text-sm">
-              <span className="text-blue-600">New Maturity Date:</span>
-              <span className="font-bold text-blue-900">{formattedNewMaturity}</span>
+              <span className="text-blue-700">Current Principal:</span>
+              <span className="text-blue-900">{formatCurrency(principal)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-blue-700">Unpaid Interest:</span>
+              <span className="text-blue-900">{formatCurrency(unpaidInterest)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-blue-700">Renewal Fee:</span>
+              <span className="text-blue-900">{formatCurrency(renewalFee)}</span>
+            </div>
+            <div className="border-t border-blue-200 pt-2 flex justify-between">
+              <span className="font-bold text-blue-900">New Principal:</span>
+              <span className="font-bold text-blue-900">{formatCurrency(newPrincipal)}</span>
+            </div>
+            <div className="pt-2 text-center">
+              <span className="text-sm text-blue-700">New Maturity Date: </span>
+              <span className="font-semibold text-blue-900">{formattedNewMaturity}</span>
             </div>
           </div>
 
