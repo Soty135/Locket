@@ -219,10 +219,8 @@ export default function RenewalForm({ txnId, loan, isOpen, onClose, onSuccess }:
               <span className="font-semibold text-blue-900 text-xs sm:text-sm">{formattedNewMaturity}</span>
             </div>
           </div>
-        </form>
 
-        <div className="flex-shrink-0 p-4 sm:p-6 pt-2 sm:pt-4 border-t border-gray-200 bg-white">
-          <div className="flex gap-2 sm:gap-3">
+          <div className="flex gap-2 sm:gap-3 pt-2">
             <button
               type="button"
               onClick={handleClose}
@@ -239,7 +237,7 @@ export default function RenewalForm({ txnId, loan, isOpen, onClose, onSuccess }:
               {loading ? 'Processing...' : 'Confirm'}
             </button>
           </div>
-        </div>
+        </form>
       </div>
       </div>
     </>
