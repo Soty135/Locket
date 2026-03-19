@@ -194,6 +194,41 @@ export async function addPayment(
   });
 }
 
+export async function updateLoanImages(
+  txnId: string,
+  images: {
+    devicePhotos?: string[];
+    idType?: 'nin' | 'drivers_license' | 'passport';
+    idFront?: string;
+    idBack?: string;
+    selfie?: string;
+  }
+): Promise<void> {
+  const docRef = doc(db, 'loans', txnId);
+  
+  const updateData: Record<string, any> = {
+    'images.uploadedAt': Timestamp.now(),
+  };
+  
+  if (images.devicePhotos !== undefined) {
+    updateData['images.devicePhotos'] = images.devicePhotos;
+  }
+  if (images.idType !== undefined) {
+    updateData['images.idType'] = images.idType;
+  }
+  if (images.idFront !== undefined) {
+    updateData['images.idFront'] = images.idFront;
+  }
+  if (images.idBack !== undefined) {
+    updateData['images.idBack'] = images.idBack;
+  }
+  if (images.selfie !== undefined) {
+    updateData['images.selfie'] = images.selfie;
+  }
+  
+  await updateDoc(docRef, updateData);
+}
+
 export async function refreshOverdueLoans(): Promise<number> {
   const now = Timestamp.now();
   const q = query(

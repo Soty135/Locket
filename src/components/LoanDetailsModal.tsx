@@ -1,5 +1,6 @@
-import { X, Phone, Laptop, Gamepad2, User, Calendar, DollarSign, CreditCard, RotateCcw } from 'lucide-react';
+import { X, Phone, Laptop, Gamepad2, User, Calendar, DollarSign, CreditCard, RotateCcw, Image as ImageIcon } from 'lucide-react';
 import type { Loan } from '../types/loan';
+import { ImageGrid } from './ImageGallery';
 
 interface LoanDetailsModalProps {
   loan: { id: string; data: Loan } | null;
@@ -145,6 +146,23 @@ export default function LoanDetailsModal({ loan, isOpen, onClose, onRenew }: Loa
                 </div>
               </div>
             </div>
+
+            {((loan.data.images?.devicePhotos?.length ?? 0) > 0 || loan.data.images?.idFront || loan.data.images?.idBack || loan.data.images?.selfie) && (
+              <div className="space-y-4 md:col-span-2">
+                <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900">
+                  <ImageIcon className="w-5 h-5 text-gray-400" />
+                  Images
+                </h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <ImageGrid
+                    devicePhotos={loan.data.images?.devicePhotos || []}
+                    idFront={loan.data.images?.idFront}
+                    idBack={loan.data.images?.idBack}
+                    selfie={loan.data.images?.selfie}
+                  />
+                </div>
+              </div>
+            )}
           </section>
 
           <section className="space-y-4">

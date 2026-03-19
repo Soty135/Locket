@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Phone, Laptop, Gamepad2, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Search, Phone, Laptop, Gamepad2, AlertCircle, CheckCircle, Clock, Image } from 'lucide-react';
 import { getActiveLoans, updateLoanStatus, refreshOverdueLoans } from '../utils/loanService';
 import type { Loan, LoanStatus } from '../types/loan';
 
@@ -124,10 +124,17 @@ export default function LoanSearch({ onViewDetails, refreshTrigger }: LoanSearch
                     <span className="font-mono text-sm font-semibold text-gray-600">
                       {loan.id}
                     </span>
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusConfig[status].color}`}>
-                      <StatusIcon className="w-3 h-3" />
-                      {statusConfig[status].label}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusConfig[status].color}`}>
+                        <StatusIcon className="w-3 h-3" />
+                        {statusConfig[status].label}
+                      </span>
+                      {loan.data.images && ((loan.data.images.devicePhotos?.length ?? 0) > 0 || loan.data.images.idFront || loan.data.images.selfie) && (
+                        <span className="inline-flex items-center justify-center w-5 h-5 bg-purple-100 text-purple-600 rounded-full" title="Has images">
+                          <Image className="w-3 h-3" />
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-start gap-3 mb-4">
