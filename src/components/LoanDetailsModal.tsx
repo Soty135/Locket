@@ -1,4 +1,4 @@
-import { X, Phone, Laptop, Gamepad2, User, Calendar, DollarSign, CreditCard, RotateCcw, Image as ImageIcon } from 'lucide-react';
+import { X, Phone, Laptop, Gamepad2, User, Calendar, DollarSign, CreditCard, RotateCcw, Image as ImageIcon, Edit2 } from 'lucide-react';
 import type { Loan } from '../types/loan';
 import { ImageGrid } from './ImageGallery';
 
@@ -7,6 +7,7 @@ interface LoanDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onRenew: () => void;
+  onEditImages?: () => void;
 }
 
 const hardwareIcons = {
@@ -28,7 +29,7 @@ const paymentTypeLabels: Record<string, string> = {
   release: 'Final Release',
 };
 
-export default function LoanDetailsModal({ loan, isOpen, onClose, onRenew }: LoanDetailsModalProps) {
+export default function LoanDetailsModal({ loan, isOpen, onClose, onRenew, onEditImages }: LoanDetailsModalProps) {
   if (!isOpen || !loan) return null;
 
   const HardwareIcon = hardwareIcons[loan.data.hardware.type] || Phone;
@@ -80,6 +81,15 @@ export default function LoanDetailsModal({ loan, isOpen, onClose, onRenew }: Loa
               >
                 <RotateCcw className="w-4 h-4" />
                 Renew
+              </button>
+            )}
+            {onEditImages && (
+              <button
+                onClick={onEditImages}
+                className="flex items-center gap-1 px-3 py-1 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <Edit2 className="w-4 h-4" />
+                Edit Images
               </button>
             )}
           </div>

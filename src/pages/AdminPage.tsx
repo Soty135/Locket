@@ -10,6 +10,7 @@ import LoanDetailsModal from '../components/LoanDetailsModal';
 import PawnReceipt from '../components/PawnReceipt';
 import RenewalForm from '../components/RenewalForm';
 import LoginForm from '../components/LoginForm';
+import ImageEditModal from '../components/ImageEditModal';
 import type { Loan } from '../types/loan';
 
 export default function AdminPage() {
@@ -19,6 +20,7 @@ export default function AdminPage() {
   const [selectedLoan, setSelectedLoan] = useState<{ id: string; data: Loan } | null>(null);
   const [receiptLoan, setReceiptLoan] = useState<{ id: string; data: Loan } | null>(null);
   const [renewalLoan, setRenewalLoan] = useState<{ id: string; data: Loan } | null>(null);
+  const [editImagesLoan, setEditImagesLoan] = useState<{ id: string; data: Loan } | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const navigate = useNavigate();
 
@@ -70,6 +72,29 @@ export default function AdminPage() {
 
   const handleCloseRenewalModal = () => {
     setRenewalLoan(null);
+  };
+
+  const handleEditImagesClick = () => {
+    if (selectedLoan) {
+      setEditImagesLoan(selectedLoan);
+    }
+  };
+
+  const handleCloseEditImagesModal = () => {
+    setEditImagesLoan(null);
+  };
+
+  const handleEditImagesSuccess = async () => {
+    setEditImagesLoan(null);
+    setRefreshTrigger((prev) => prev + 1);
+    
+    if (selectedLoan) {
+      const loanData = await getLoanById(selectedLoan.id);
+      if (loanData) {
+        const updatedLoan = { id: selectedLoan.id, data: loanData };
+        setSelectedLoan(updatedLoan);
+      }
+    }
   };
 
   const handleRenewalSuccess = async (_result: { previousPrincipal: number; unpaidInterest: number; renewalFee: number; newPrincipal: number; newMaturityDate: Date }) => {
@@ -153,6 +178,7 @@ export default function AdminPage() {
         isOpen={!!selectedLoan}
         onClose={handleCloseDetailsModal}
         onRenew={handleRenewClick}
+        onEditImages={handleEditImagesClick}
       />
 
       {renewalLoan && (
@@ -171,6 +197,16 @@ export default function AdminPage() {
           loan={receiptLoan.data}
           isOpen={!!receiptLoan}
           onClose={handleCloseReceipt}
+        />
+      )}
+
+      {editImagesLoan && (
+        <ImageEditModal
+          txnId={editImagesLoan.id}
+          images={editImagesLoan.data.images}
+          isOpen={!!editImagesLoan}
+          onClose={handleCloseEditImagesModal}
+          onSuccess={handleEditImagesSuccess}
         />
       )}
     </div>
