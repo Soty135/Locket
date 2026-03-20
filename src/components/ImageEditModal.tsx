@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Upload, Trash2, Check } from 'lucide-react';
-import { uploadImage, deleteImage, type ImageType } from '../firebase/storage';
+import { uploadImage, type ImageType } from '../utils/cloudinary';
 import { updateLoanImages } from '../utils/loanService';
 import type { LoanImages } from '../types/loan';
 
@@ -54,17 +54,12 @@ export default function ImageEditModal({ txnId, images, isOpen, onClose, onSucce
   };
 
   const handleDeleteDevicePhoto = async (index: number) => {
-    const url = devicePhotos[index];
     try {
-      const path = url.split('firebasestorage.googleapis.com')[1] || '';
-      if (path) {
-        await deleteImage(path);
-      }
       setDevicePhotos((prev) => prev.filter((_, i) => i !== index));
-      setMessage({ type: 'success', text: 'Image deleted successfully!' });
+      setMessage({ type: 'success', text: 'Image removed.' });
     } catch (error) {
       console.error('Delete error:', error);
-      setMessage({ type: 'error', text: 'Failed to delete image.' });
+      setMessage({ type: 'error', text: 'Failed to remove image.' });
     }
   };
 

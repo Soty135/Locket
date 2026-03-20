@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Loader2, AlertTriangle, CheckCircle, Camera, User, CreditCard } from 'lucide-react';
 import { createLoan, checkDuplicateHardware, updateLoanImages } from '../utils/loanService';
-import { uploadImage } from '../firebase/storage';
+import { uploadImage } from '../utils/cloudinary';
 import { MultiImageUpload } from './ImageUpload';
 import type { LoanFormData, HardwareType, HardwareCondition, IdType } from '../types/loan';
 

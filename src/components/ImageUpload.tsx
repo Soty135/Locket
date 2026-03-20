@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { X, Image as ImageIcon, Camera, Loader2 } from 'lucide-react';
-import { uploadImage, type ImageType } from '../firebase/storage';
+import { uploadImage, type ImageType } from '../utils/cloudinary';
 
 interface ImageUploadProps {
   txnId: string;
@@ -53,7 +53,7 @@ export default function ImageUpload({
 
     try {
       const result = await uploadImage(file, txnId, imageType);
-      onUpload(result.url, result.path);
+      onUpload(result.url, result.publicId);
     } catch (err) {
       setError('Failed to upload image');
       setPreview(existingUrl || '');
@@ -193,11 +193,11 @@ export function MultiImageUpload({
       );
       const uploadResults = await Promise.all(uploadPromises);
       const newUrls = uploadResults.map((r) => r.url);
-      const newPaths = uploadResults.map((r) => r.path);
+      const newPublicIds = uploadResults.map((r) => r.publicId);
       const updatedPreviews = [...previews, ...previewUrls];
       const updatedUrls = [...previews, ...newUrls];
       setPreviews(updatedPreviews);
-      onUpload(updatedUrls, newPaths);
+      onUpload(updatedUrls, newPublicIds);
     } catch (err) {
       setError('Failed to upload images');
     } finally {
