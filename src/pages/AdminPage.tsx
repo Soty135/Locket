@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, ArrowLeft, LogOut, Clock } from 'lucide-react';
+import { Plus, ArrowLeft, LogOut } from 'lucide-react';
 import { auth } from '../firebase/config';
 import { getLoanById } from '../utils/loanService';
 import LoanSearch from '../components/LoanSearch';
@@ -11,7 +11,7 @@ import PawnReceipt from '../components/PawnReceipt';
 import RenewalForm from '../components/RenewalForm';
 import LoginForm from '../components/LoginForm';
 import ImageEditModal from '../components/ImageEditModal';
-import { useInactivityTimeout, formatTime } from '../hooks/useInactivityTimeout';
+import { useInactivityTimeout } from '../hooks/useInactivityTimeout';
 import type { Loan } from '../types/loan';
 
 export default function AdminPage() {
@@ -25,7 +25,7 @@ export default function AdminPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const navigate = useNavigate();
 
-  const { remainingTime, isWarning, resetTimer, logout } = useInactivityTimeout(!!user);
+  useInactivityTimeout(!!user);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -211,42 +211,6 @@ export default function AdminPage() {
           onClose={handleCloseEditImagesModal}
           onSuccess={handleEditImagesSuccess}
         />
-      )}
-
-      {isWarning && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 text-center">
-            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Clock className="w-8 h-8 text-orange-600" />
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Session Timeout</h2>
-            <p className="text-gray-600 mb-2">
-              You will be logged out due to inactivity in
-            </p>
-            <p className="text-3xl font-bold text-orange-600 mb-4">
-              {formatTime(remainingTime)}
-            </p>
-            <p className="text-sm text-gray-500 mb-6">
-              Click anywhere or press any key to stay logged in
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  resetTimer();
-                }}
-                className="flex-1 px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Stay Logged In
-              </button>
-              <button
-                onClick={logout}
-                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Logout Now
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
