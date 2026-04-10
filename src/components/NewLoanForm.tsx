@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X, Loader2, AlertTriangle, CheckCircle, Camera, User, CreditCard } from 'lucide-react';
 import { createLoan, checkDuplicateHardware, updateLoanImages } from '../utils/loanService';
 import { uploadImage } from '../utils/cloudinary';
@@ -39,6 +39,18 @@ export default function NewLoanForm({ isOpen, onClose, onSuccess }: NewLoanFormP
   const [deviceUrls, setDeviceUrls] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imageError, setImageError] = useState('');
+
+  const idFrontRef = useRef(idFrontUrl);
+  const idBackRef = useRef(idBackUrl);
+  const selfieRef = useRef(selfieUrl);
+  const deviceUrlsRef = useRef(deviceUrls);
+  const idTypeRef = useRef(idType);
+
+  useEffect(() => { idFrontRef.current = idFrontUrl; }, [idFrontUrl]);
+  useEffect(() => { idBackRef.current = idBackUrl; }, [idBackUrl]);
+  useEffect(() => { selfieRef.current = selfieUrl; }, [selfieUrl]);
+  useEffect(() => { deviceUrlsRef.current = deviceUrls; }, [deviceUrls]);
+  useEffect(() => { idTypeRef.current = idType; }, [idType]);
 
   if (!isOpen) return null;
 
@@ -89,20 +101,26 @@ export default function NewLoanForm({ isOpen, onClose, onSuccess }: NewLoanFormP
     setUploadingImages(true);
     setImageError('');
 
+    const currentIdFront = idFrontRef.current;
+    const currentIdBack = idBackRef.current;
+    const currentSelfie = selfieRef.current;
+    const currentDeviceUrls = deviceUrlsRef.current;
+    const currentIdType = idTypeRef.current;
+
     try {
-      if (idFrontUrl || idBackUrl || selfieUrl || deviceUrls.length > 0) {
+      if (currentIdFront || currentIdBack || currentSelfie || currentDeviceUrls.length > 0) {
         await updateLoanImages(txnId, {
-          devicePhotos: deviceUrls,
-          idType,
-          idFront: idFrontUrl,
-          idBack: idBackUrl,
-          selfie: selfieUrl,
+          devicePhotos: currentDeviceUrls,
+          idType: currentIdType,
+          idFront: currentIdFront,
+          idBack: currentIdBack,
+          selfie: currentSelfie,
         });
       }
       onSuccess(txnId);
       handleClose();
     } catch (err) {
-      setImageError('Failed to save images. Loan created without images.');
+      setImageError('Failed to save images. Loan created without images. Please try again via the Edit option.');
       console.error(err);
     } finally {
       setUploadingImages(false);

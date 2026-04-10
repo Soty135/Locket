@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { X, Image as ImageIcon, Camera, Loader2 } from 'lucide-react';
 import { uploadImage, type ImageType } from '../utils/cloudinary';
 
@@ -162,6 +162,12 @@ export function MultiImageUpload({
   const [previews, setPreviews] = useState<string[]>(existingUrls);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (JSON.stringify(previews) !== JSON.stringify(existingUrls)) {
+      setPreviews(existingUrls);
+    }
+  }, [existingUrls]);
 
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Upload, Trash2, Check } from 'lucide-react';
 import { uploadImage, type ImageType } from '../utils/cloudinary';
 import { updateLoanImages } from '../utils/loanService';
@@ -21,6 +21,13 @@ export default function ImageEditModal({ txnId, images, isOpen, onClose, onSucce
   const [idBack, setIdBack] = useState<string | undefined>(images?.idBack);
   const [selfie, setSelfie] = useState<string | undefined>(images?.selfie);
   const [devicePhotos, setDevicePhotos] = useState<string[]>(images?.devicePhotos || []);
+
+  useEffect(() => {
+    setIdFront(images?.idFront);
+    setIdBack(images?.idBack);
+    setSelfie(images?.selfie);
+    setDevicePhotos(images?.devicePhotos || []);
+  }, [images?.idFront, images?.idBack, images?.selfie, images?.devicePhotos]);
 
   if (!isOpen) return null;
 
