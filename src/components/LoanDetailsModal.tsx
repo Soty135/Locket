@@ -76,10 +76,11 @@ export default function LoanDetailsModal({ loan, isOpen, onClose, onRenew, onEdi
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overscroll-none"
       onWheel={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
     >
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center sm:gap-3">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono text-base sm:text-lg font-semibold text-gray-600">

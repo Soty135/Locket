@@ -29,6 +29,17 @@ export default function ImageEditModal({ txnId, images, isOpen, onClose, onSucce
     setDevicePhotos(images?.devicePhotos || []);
   }, [images?.idFront, images?.idBack, images?.selfie, images?.devicePhotos]);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: 'idFront' | 'idBack' | 'selfie' | 'devicePhoto') => {
